@@ -5,7 +5,7 @@
     if (window.netflix_new_plugin) return;
     window.netflix_new_plugin = true;
 
-    var ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M5 2h4.2l5.6 13.4V2H19v20c-1.3-.2-2.7-.3-4.1-.4L9.2 8.3V21.3c-1.4.1-2.8.3-4.2.5V2z"/></svg>';
+    var ICON = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#E50914" d="M5 2h4.2l5.6 13.4V2H19v20c-1.3-.2-2.7-.3-4.1-.4L9.2 8.3V21.3c-1.4.1-2.8.3-4.2.5V2z"/></svg>';
 
     function day(offset) {
         var d = new Date(Date.now() + offset * 86400000);
