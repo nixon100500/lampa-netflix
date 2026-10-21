@@ -14,6 +14,18 @@
         {
             id: 'appletv', name: 'Apple TV+', network: 2552, provider: 350,
             icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M16.37 12.6c-.02-2.3 1.88-3.4 1.97-3.46-1.07-1.57-2.74-1.78-3.33-1.8-1.42-.14-2.77.84-3.49.84-.72 0-1.83-.82-3.01-.8-1.55.02-2.98.9-3.78 2.29-1.61 2.8-.41 6.94 1.16 9.21.77 1.11 1.68 2.36 2.88 2.31 1.16-.05 1.6-.75 3-.75s1.79.75 3.01.73c1.24-.02 2.03-1.13 2.79-2.25.88-1.29 1.24-2.53 1.26-2.6-.03-.01-2.42-.93-2.46-3.72zM14.08 5.84c.64-.77 1.07-1.85.95-2.92-.92.04-2.03.61-2.69 1.38-.59.68-1.11 1.77-.97 2.82 1.03.08 2.07-.52 2.71-1.28z"/></svg>'
+        },
+        {
+            id: 'hbo', name: 'HBO', network: '49|3186', provider: 1899,
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="16" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="10" fill="currentColor">HBO</text></svg>'
+        },
+        {
+            id: 'prime', name: 'Prime Video', network: 1024, provider: 9,
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="14" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="8.5" fill="#00A8E1">prime</text><path fill="#00A8E1" d="M5 17c4 2.2 10 2.2 14 0l-.6 1.4c-4 1.8-8.8 1.8-12.8 0z"/></svg>'
+        },
+        {
+            id: 'disney', name: 'Disney+', network: 2739, provider: 337,
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><text x="12" y="17" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-weight="700" font-size="13" fill="#3D7BFF">D+</text></svg>'
         }
     ];
 
