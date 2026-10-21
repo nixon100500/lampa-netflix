@@ -34,21 +34,35 @@
         return d.toISOString().slice(0, 10);
     }
 
+    // период для «новых сериалов» и «новых фильмов», в месяцах; 0 — за всё время
+    var PERIODS = [1, 2, 4, 6, 0];
+
+    function period() {
+        var p = parseInt(Lampa.Storage.get('streaming_new_period', '4'), 10);
+        return PERIODS.indexOf(p) >= 0 ? p : 4;
+    }
+
+    function periodName(p) {
+        if (!p) return 'за всё время';
+        return 'за ' + p + (p === 1 ? ' месяц' : (p < 5 ? ' месяца' : ' месяцев'));
+    }
+
     function open(s, type) {
-        var from = day(-120), to = day(0), url, title;
+        var p = period(), to = day(0), url, title;
+        var from = p ? day(-30 * p) : '';
 
         if (type === 'tv') {
             url = 'discover/tv?with_networks=' + s.network + '&sort_by=popularity.desc' +
-                '&first_air_date.gte=' + from + '&first_air_date.lte=' + to;
-            title = s.name + ' — новые сериалы';
+                (from ? '&first_air_date.gte=' + from : '') + '&first_air_date.lte=' + to;
+            title = s.name + ' — новые сериалы, ' + periodName(p);
         } else if (type === 'season') {
             url = 'discover/tv?with_networks=' + s.network + '&sort_by=popularity.desc' +
                 '&air_date.gte=' + day(-30) + '&air_date.lte=' + to;
             title = s.name + ' — выходят сейчас';
         } else {
             url = 'discover/movie?with_watch_providers=' + s.provider + '&watch_region=US&sort_by=popularity.desc' +
-                '&primary_release_date.gte=' + from + '&primary_release_date.lte=' + to;
-            title = s.name + ' — новые фильмы';
+                (from ? '&primary_release_date.gte=' + from : '') + '&primary_release_date.lte=' + to;
+            title = s.name + ' — новые фильмы, ' + periodName(p);
         }
 
         Lampa.Activity.push({
@@ -67,10 +81,29 @@
             items: [
                 { title: 'Новые сериалы', type: 'tv' },
                 { title: 'Выходят сейчас (новые серии)', type: 'season' },
-                { title: 'Новые фильмы', type: 'movie' }
+                { title: 'Новые фильмы', type: 'movie' },
+                { title: 'Период: ' + periodName(period()), type: 'period' }
             ],
-            onSelect: function (a) { open(s, a.type); },
+            onSelect: function (a) {
+                if (a.type === 'period') choosePeriod(s);
+                else open(s, a.type);
+            },
             onBack: function () { Lampa.Controller.toggle('menu'); }
+        });
+    }
+
+    function choosePeriod(s) {
+        var cur = period();
+        Lampa.Select.show({
+            title: 'Период новинок',
+            items: PERIODS.map(function (p) {
+                return { title: periodName(p), value: p, selected: p === cur };
+            }),
+            onSelect: function (a) {
+                Lampa.Storage.set('streaming_new_period', String(a.value));
+                menu(s);
+            },
+            onBack: function () { menu(s); }
         });
     }
 
