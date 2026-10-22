@@ -107,6 +107,102 @@
         });
     }
 
+    // ---------- Star Wars: ручной список по хронологии событий ----------
+    // [тип, id в TMDB, мульт?]
+    var SW_CANON = [
+        ['tv', 202998, 1], ['tv', 114479], ['movie', 1893], ['movie', 1894], ['movie', 12180, 1], ['tv', 4194, 1],
+        ['tv', 203085, 1], ['tv', 288055, 1], ['movie', 1895], ['tv', 289219, 1], ['tv', 251091, 1], ['tv', 105971, 1],
+        ['movie', 348350], ['tv', 92830], ['tv', 83867], ['tv', 60554, 1], ['movie', 330459], ['movie', 11],
+        ['movie', 1891], ['movie', 1892], ['tv', 82856], ['tv', 115036], ['tv', 114461], ['tv', 202879],
+        ['movie', 1228710], ['tv', 79093, 1], ['movie', 140607], ['movie', 181808], ['movie', 181812]
+    ];
+    // неканон, спецвыпуски, LEGO, антологии
+    var SW_OTHER = [
+        ['tv', 3122, 1], ['movie', 74849], ['tv', 25, 1], ['tv', 3478, 1], ['movie', 1884], ['movie', 10372],
+        ['tv', 114478, 1], ['tv', 71412, 1], ['tv', 66837, 1], ['tv', 85536, 1]
+    ];
+
+    function swComponent(object) {
+        var comp = new Lampa.InteractionCategory(object);
+        var net = new Lampa.Reguest();
+
+        comp.create = function () {
+            var self = this, list = object.sw_list, out = [], left = list.length;
+            var lang = Lampa.Storage.field('tmdb_lang') || 'ru';
+
+            list.forEach(function (it, i) {
+                var u = Lampa.TMDB.api(it[0] + '/' + it[1] + '?api_key=' + Lampa.TMDB.key() + '&language=' + lang);
+                net.silent(u, function (json) {
+                    json.source = 'tmdb';
+                    out[i] = json;
+                    if (--left === 0) done();
+                }, function () {
+                    if (--left === 0) done();
+                }, false, { cache: { life: 60 * 24 * 7 } });
+            });
+
+            function done() {
+                self.build({ results: out.filter(Boolean), total_pages: 1, page: 1 });
+            }
+        };
+
+        comp.nextPageReuest = function (object, resolve, reject) { reject(); };
+
+        var destroy = comp.destroy;
+        comp.destroy = function () { net.clear(); if (destroy) destroy.apply(comp, arguments); };
+
+        return comp;
+    }
+
+    function swOpen(title, list) {
+        Lampa.Activity.push({ url: '', title: title, component: 'sw_list', sw_list: list, source: 'tmdb', page: 1 });
+    }
+
+    function swMenu() {
+        Lampa.Select.show({
+            title: 'Звёздные войны',
+            items: [
+                { title: 'Всё по хронологии', list: SW_CANON },
+                { title: 'Фильмы', list: SW_CANON.filter(function (x) { return x[0] === 'movie'; }) },
+                { title: 'Сериалы', list: SW_CANON.filter(function (x) { return x[0] === 'tv' && !x[2]; }) },
+                { title: 'Мультсериалы и мультфильмы', list: SW_CANON.filter(function (x) { return x[2]; }) },
+                { title: 'Другое: старое, LEGO, спецвыпуски', list: SW_OTHER }
+            ],
+            onSelect: function (a) { swOpen('Звёздные войны — ' + a.title.toLowerCase(), a.list); },
+            onBack: function () { Lampa.Controller.toggle('menu'); }
+        });
+    }
+
+    // ---------- Фильмы и сериалы по играм (ключевое слово TMDB 41645) ----------
+    function gamesMenu() {
+        var items = [
+            { title: 'Фильмы — популярные', url: 'discover/movie?with_keywords=41645&sort_by=popularity.desc' },
+            { title: 'Фильмы — лучшие по оценкам', url: 'discover/movie?with_keywords=41645&sort_by=vote_average.desc&vote_count.gte=300' },
+            { title: 'Фильмы — новые', url: 'discover/movie?with_keywords=41645&sort_by=primary_release_date.desc&primary_release_date.lte=' + day(0) },
+            { title: 'Сериалы — популярные', url: 'discover/tv?with_keywords=41645&sort_by=popularity.desc' },
+            { title: 'Сериалы — лучшие по оценкам', url: 'discover/tv?with_keywords=41645&sort_by=vote_average.desc&vote_count.gte=200' }
+        ];
+        Lampa.Select.show({
+            title: 'По играм',
+            items: items,
+            onSelect: function (a) {
+                Lampa.Activity.push({ url: a.url, title: 'По играм — ' + a.title.toLowerCase(), component: 'category_full', source: 'tmdb', card_type: true, page: 1 });
+            },
+            onBack: function () { Lampa.Controller.toggle('menu'); }
+        });
+    }
+
+    var EXTRA = [
+        {
+            action: 'starwars_menu', name: 'Star Wars', open: swMenu,
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#FFE81F" d="M17.6 3.3l1.1 1.1-7.9 7.9-1.1-1.1z"/><path fill="currentColor" d="M9.1 12.2l2.7 2.7-1.4 1.4-.7-.7-4.6 4.6c-.4.4-1 .4-1.4 0l-.3-.3c-.4-.4-.4-1 0-1.4l4.6-4.6-.7-.7z"/></svg>'
+        },
+        {
+            action: 'games_menu', name: 'По играм', open: gamesMenu,
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="currentColor" d="M7 6h10a5 5 0 0 1 4.9 6l-.8 4.2a2.6 2.6 0 0 1-4.5 1.2L14.3 15H9.7l-2.3 2.4a2.6 2.6 0 0 1-4.5-1.2L2.1 12A5 5 0 0 1 7 6zm0 3v1.5H5.5V12H7v1.5h1.5V12H10v-1.5H8.5V9zm9 .2a1 1 0 1 0 0 2 1 1 0 0 0 0-2zm2 2.3a1 1 0 1 0 0 2 1 1 0 0 0 0-2z"/></svg>'
+        }
+    ];
+
     function add() {
         var list = $('.menu .menu__list').eq(0);
         SERVICES.forEach(function (s) {
@@ -118,7 +214,17 @@
             item.on('hover:enter', function () { menu(s); });
             list.append(item);
         });
+
+        EXTRA.forEach(function (e) {
+            var item = $('<li class="menu__item selector" data-action="' + e.action + '">' +
+                '<div class="menu__ico">' + e.icon + '</div>' +
+                '<div class="menu__text">' + e.name + '</div></li>');
+            item.on('hover:enter', e.open);
+            list.append(item);
+        });
     }
+
+    Lampa.Component.add('sw_list', swComponent);
 
     if (window.appready) add();
     else Lampa.Listener.follow('app', function (e) { if (e.type === 'ready') add(); });
