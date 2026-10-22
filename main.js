@@ -122,27 +122,84 @@
         ['tv', 114478, 1], ['tv', 71412, 1], ['tv', 66837, 1], ['tv', 85536, 1]
     ];
 
+    // Категории: chrono — только ручной список по хронологии; остальные — ручной список
+    // плюс всё новое из поиска TMDB по «Star Wars», отсортировано по дате выхода.
+    function swKind(type, anim, title) {
+        if (/^lego /i.test(title || '')) return 'other';
+        if (anim) return 'anim';
+        return type === 'movie' ? 'movie' : 'tv';
+    }
+
+    function swDate(x) { return x.release_date || x.first_air_date || ''; }
+
     function swComponent(object) {
         var comp = new Lampa.InteractionCategory(object);
         var net = new Lampa.Reguest();
 
         comp.create = function () {
-            var self = this, list = object.sw_list, out = [], left = list.length;
+            var self = this, cat = object.sw_cat;
             var lang = Lampa.Storage.field('tmdb_lang') || 'ru';
+            var key = '&api_key=' + Lampa.TMDB.key() + '&language=' + lang;
+            var cache = { cache: { life: 60 * 24 } };
+            var tasks = [], manual = [], found = [];
 
-            list.forEach(function (it, i) {
-                var u = Lampa.TMDB.api(it[0] + '/' + it[1] + '?api_key=' + Lampa.TMDB.key() + '&language=' + lang);
-                net.silent(u, function (json) {
-                    json.source = 'tmdb';
-                    out[i] = json;
-                    if (--left === 0) done();
-                }, function () {
-                    if (--left === 0) done();
-                }, false, { cache: { life: 60 * 24 * 7 } });
+            var list = cat === 'chrono' ? SW_CANON : SW_CANON.concat(SW_OTHER).filter(function (x) {
+                var k = SW_OTHER.indexOf(x) >= 0 ? 'other' : (x[2] ? 'anim' : (x[0] === 'movie' ? 'movie' : 'tv'));
+                return k === cat;
             });
 
+            list.forEach(function (it, i) {
+                tasks.push(function (next) {
+                    net.silent(Lampa.TMDB.api(it[0] + '/' + it[1] + '?' + key.slice(1)), function (json) {
+                        json.source = 'tmdb'; json.sw_type = it[0];
+                        manual[i] = json; next();
+                    }, next, false, cache);
+                });
+            });
+
+            if (cat !== 'chrono') {
+                ['movie', 'tv'].forEach(function (type) {
+                    [1, 2, 3].forEach(function (page) {
+                        tasks.push(function (next) {
+                            net.silent(Lampa.TMDB.api('search/' + type + '?query=Star%20Wars&page=' + page + key), function (json) {
+                                (json.results || []).forEach(function (r) { r.sw_type = type; found.push(r); });
+                                next();
+                            }, next, false, cache);
+                        });
+                    });
+                });
+            }
+
+            var left = tasks.length;
+            if (!left) return done();
+            tasks.forEach(function (t) { t(function () { if (--left === 0) done(); }); });
+
             function done() {
-                self.build({ results: out.filter(Boolean), total_pages: 1, page: 1 });
+                var out = manual.filter(Boolean);
+
+                if (cat !== 'chrono') {
+                    var have = {}, yearAgo = new Date(Date.now() - 365 * 86400000).toISOString().slice(0, 10);
+                    SW_CANON.concat(SW_OTHER).forEach(function (x) { have[x[0] + x[1]] = 1; });
+
+                    found.forEach(function (r) {
+                        var orig = r.original_title || r.original_name || '';
+                        var genres = r.genre_ids || [];
+                        var date = swDate(r);
+                        if (have[r.sw_type + r.id]) return;
+                        if (!/^(lego )?star wars/i.test(orig)) return;
+                        if (genres.indexOf(99) >= 0 || !r.poster_path || !date) return;
+                        if (r.vote_count < 30 && date < yearAgo) return;
+                        if (/podcast|flythrough|sounds|icons of the force|insider|making of/i.test(orig)) return;
+                        if (swKind(r.sw_type, genres.indexOf(16) >= 0, orig) !== cat) return;
+                        have[r.sw_type + r.id] = 1;
+                        r.source = 'tmdb';
+                        out.push(r);
+                    });
+
+                    out.sort(function (x, y) { return swDate(x) < swDate(y) ? -1 : 1; });
+                }
+
+                self.build({ results: out, total_pages: 1, page: 1 });
             }
         };
 
@@ -154,21 +211,19 @@
         return comp;
     }
 
-    function swOpen(title, list) {
-        Lampa.Activity.push({ url: '', title: title, component: 'sw_list', sw_list: list, source: 'tmdb', page: 1 });
-    }
-
     function swMenu() {
         Lampa.Select.show({
             title: 'Звёздные войны',
             items: [
-                { title: 'Всё по хронологии', list: SW_CANON },
-                { title: 'Фильмы', list: SW_CANON.filter(function (x) { return x[0] === 'movie'; }) },
-                { title: 'Сериалы', list: SW_CANON.filter(function (x) { return x[0] === 'tv' && !x[2]; }) },
-                { title: 'Мультсериалы и мультфильмы', list: SW_CANON.filter(function (x) { return x[2]; }) },
-                { title: 'Другое: старое, LEGO, спецвыпуски', list: SW_OTHER }
+                { title: 'Всё по хронологии', cat: 'chrono' },
+                { title: 'Фильмы', cat: 'movie' },
+                { title: 'Сериалы', cat: 'tv' },
+                { title: 'Мультсериалы и мультфильмы', cat: 'anim' },
+                { title: 'Другое: старое, LEGO, спецвыпуски', cat: 'other' }
             ],
-            onSelect: function (a) { swOpen('Звёздные войны — ' + a.title.toLowerCase(), a.list); },
+            onSelect: function (a) {
+                Lampa.Activity.push({ url: '', title: 'Звёздные войны — ' + a.title.toLowerCase(), component: 'sw_list', sw_cat: a.cat, source: 'tmdb', page: 1 });
+            },
             onBack: function () { Lampa.Controller.toggle('menu'); }
         });
     }
