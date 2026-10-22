@@ -251,7 +251,7 @@
     var EXTRA = [
         {
             action: 'starwars_menu', name: 'Star Wars', open: swMenu,
-            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#6EC1FF" d="M12 .5l.6 5.5v17.5h-1.2V6z"/><g fill="none" stroke="#6EC1FF" stroke-width="1.1"><circle cx="12" cy="15" r="6.2"/><path d="M11.4 12.5 8.7 18.5M12.6 15l2.9-3M13.7 14l2.3 4.5"/></g></svg>'
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#6EC1FF" d="M12 1l.4 12.2h.45v7.3L12 23l-.85-2.5v-7.3h.45z"/><g fill="none" stroke="#6EC1FF" stroke-width="1.1" stroke-linecap="square"><circle cx="12" cy="15.4" r="5.6"/><path d="M10.1 12v3.8l-2 2M13.3 15.4l1.3-2M13.3 15.6l1.3 2.3"/></g></svg>'
         },
         {
             action: 'games_menu', name: 'По играм', open: gamesMenu,
