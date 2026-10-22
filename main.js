@@ -251,7 +251,7 @@
     var EXTRA = [
         {
             action: 'starwars_menu', name: 'Star Wars', open: swMenu,
-            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="#6EC1FF" d="M12 1l.4 12.2h.45v7.3L12 23l-.85-2.5v-7.3h.45z"/><g fill="none" stroke="#6EC1FF" stroke-width="1.1" stroke-linecap="square"><circle cx="12" cy="15.4" r="5.6"/><path d="M10.1 12v3.8l-2 2M13.3 15.4l1.3-2M13.3 15.6l1.3 2.3"/></g></svg>'
+            icon: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke="#FFE81F" stroke-width="1.1" stroke-linejoin="round" d="M5.70 6.45 L1.50 6.45 L1.05 7.00 L5.15 10.40 L4.70 10.95 L0.20 10.95 M6.35 6.45 L11.55 6.45 M8.95 6.45 L8.95 11.50 M12.50 11.50 L14.30 6.45 L15.30 6.45 L17.10 11.50 M13.60 9.80 L16.00 9.80 M18.60 11.50 L18.60 6.45 L22.05 6.45 L22.70 7.00 L22.70 8.25 L22.05 8.80 L18.60 8.80 M20.45 8.80 L22.65 10.95 L23.65 10.95 M0.50 12.80 L1.80 18.10 L3.10 14.90 L4.40 18.10 L5.70 12.80 M6.65 18.10 L8.45 13.05 L9.45 13.05 L11.25 18.10 M7.75 16.40 L10.15 16.40 M12.75 18.10 L12.75 13.05 L16.20 13.05 L16.85 13.60 L16.85 14.85 L16.20 15.40 L12.75 15.40 M14.60 15.40 L16.80 17.55 L17.80 17.55 M23.25 13.05 L19.05 13.05 L18.60 13.60 L22.70 17.00 L22.25 17.55 L17.75 17.55"/></svg>'
         },
         {
             action: 'games_menu', name: 'По играм', open: gamesMenu,
