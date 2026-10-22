@@ -119,7 +119,7 @@
     // неканон, спецвыпуски, LEGO, антологии
     var SW_OTHER = [
         ['tv', 3122, 1], ['movie', 74849], ['tv', 25, 1], ['tv', 3478, 1], ['movie', 1884], ['movie', 10372],
-        ['tv', 114478, 1], ['tv', 71412, 1], ['tv', 66837, 1], ['tv', 85536, 1]
+        ['tv', 114478, 1], ['tv', 289324, 1], ['tv', 71412, 1], ['tv', 66837, 1], ['tv', 85536, 1]
     ];
 
     // Категории: chrono — только ручной список по хронологии; остальные — ручной список
@@ -186,7 +186,8 @@
                         var genres = r.genre_ids || [];
                         var date = swDate(r);
                         if (have[r.sw_type + r.id]) return;
-                        if (!/^(lego )?star wars/i.test(orig)) return;
+                        var loc = r.title || r.name || '';
+                        if (!/^(lego )?star wars/i.test(orig) && !/^(lego |лего )?зв[её]здные войны/i.test(loc)) return;
                         if (genres.indexOf(99) >= 0 || !r.poster_path || !date) return;
                         if (r.vote_count < 30 && date < yearAgo) return;
                         if (/podcast|flythrough|sounds|icons of the force|insider|making of/i.test(orig)) return;
